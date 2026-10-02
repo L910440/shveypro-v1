@@ -532,20 +532,24 @@
         <span>WhatsApp</span>
       </a>
     </div>
-    <p class="contacts-note">* контакты примерные — замените на реальные перед публикацией</p>
+    <p class="contacts-note">* контакты примерные (включая email для формы заявки) — замените на реальные перед публикацией</p>
 
     <form class="order-form" id="order-form" onsubmit="return submitOrderForm(event)">
-      <input type="text" placeholder="Ваше имя" required>
-      <input type="tel" placeholder="Телефон или Telegram" required>
-      <input type="text" placeholder="Что нужно пошить" required>
-      <input type="number" placeholder="Количество (от 50 шт)" min="50">
+      <input type="text" name="name" placeholder="Ваше имя" required>
+      <input type="tel" name="phone" placeholder="Телефон или Telegram" required>
+      <input type="text" name="task" placeholder="Что нужно пошить" required>
+      <input type="number" name="qty" placeholder="Количество (от 50 шт)" min="50">
       <label class="file-label">
         📎 Прикрепить фото / эскиз / образец
-        <input type="file" style="display:none">
+        <input type="file" name="attachment" style="display:none">
       </label>
-      <button type="submit">Получить точный расчёт</button>
+      <input type="hidden" name="_subject" value="Новая заявка с сайта ШвейПро">
+      <input type="hidden" name="_template" value="table">
+      <input type="hidden" name="_captcha" value="false">
+      <button type="submit" id="order-submit-btn">Получить точный расчёт</button>
     </form>
     <div class="order-success" id="order-success">✅ Спасибо! Заявка отправлена. Мы свяжемся с вами для уточнения деталей.</div>
+    <div class="order-error" id="order-error" style="display:none; color:#97452B; margin-top:12px;">Не получилось отправить заявку. Напишите нам напрямую в <a href="https://t.me/shveypro">Telegram</a> или <a href="https://wa.me/79991234567">WhatsApp</a>.</div>
     <a href="#top" class="back-to-top">↑ Вернуться к началу</a>
   </div>
 </section>
@@ -586,8 +590,31 @@ function calculatePrice() {
 
 function submitOrderForm(e) {
   e.preventDefault();
-  document.getElementById('order-form').style.display = 'none';
-  document.getElementById('order-success').style.display = 'block';
+  var form = document.getElementById('order-form');
+  var btn = document.getElementById('order-submit-btn');
+  var errorBox = document.getElementById('order-error');
+  errorBox.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Отправляем...';
+
+  // TODO перед запуском у заказчика: заменить на реальный email заказчика
+  // (на этот адрес FormSubmit пришлёт письмо с подтверждением один раз)
+  fetch('https://formsubmit.co/ЗАМЕНИТЕ-НА-EMAIL-ЗАКАЗЧИКА@example.com', {
+    method: 'POST',
+    body: new FormData(form),
+    headers: { 'Accept': 'application/json' }
+  })
+    .then(function (res) {
+      if (!res.ok) throw new Error('submit failed');
+      form.style.display = 'none';
+      document.getElementById('order-success').style.display = 'block';
+    })
+    .catch(function () {
+      btn.disabled = false;
+      btn.textContent = 'Получить точный расчёт';
+      errorBox.style.display = 'block';
+    });
+
   return false;
 }
 </script>
